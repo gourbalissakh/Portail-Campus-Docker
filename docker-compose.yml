@@ -79,7 +79,7 @@ services:
 
   # Serveur DNS
   dns:
-    image: internetsystemsconsortium/bind9
+    image: ubuntu/bind9:latest
     container_name: dns_campus
     volumes:
       - ./dns/named.conf:/etc/bind/named.conf
