@@ -71,8 +71,8 @@ services:
       -u "campus;campus"
       -s "PartageCampus;/partage;yes;no;yes;campus"
     ports:
-      - "139:139"
-      - "445:445"
+      - "1139:139"
+      - "1445:445"
     networks:
       portail-campus-network:
         ipv4_address: 172.20.0.40
