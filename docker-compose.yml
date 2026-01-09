@@ -1,0 +1,103 @@
+version: "3.8"
+
+services:
+  # Serveur HTTP avec PHP
+  serveur_web_php:
+    image: php:8.2-apache
+    container_name: serveur_web_php
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Portail-campus-CRUD:/var/www/html
+    build:
+      context: .
+      dockerfile: Dockerfile  
+    depends_on:
+      - db_portail_campus
+    networks:
+      portail-campus-network:
+        ipv4_address: 172.20.0.20
+
+  # Serveur de base de données MySQL
+  db_portail_campus:
+    image: mysql:8.0
+    container_name: db_portail_campus
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: portail_campus_db
+      MYSQL_USER: campus_user
+      MYSQL_PASSWORD: campus_pass
+    volumes:
+      - db_data_portail_campus:/var/lib/mysql
+    networks:
+      portail-campus-network:
+        ipv4_address: 172.20.0.30
+
+  # phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_portail_campus
+    environment:
+      PMA_HOST: db_portail_campus
+      PMA_USER: campus_user
+      PMA_PASSWORD: campus_pass
+    ports:
+      - "8081:80"
+    depends_on:
+      - db_portail_campus
+    networks:
+      - portail-campus-network
+
+  # Serveur DHCP
+  dhcp:
+    image: networkboot/dhcpd
+    container_name: dhcp_campus
+    volumes:
+      - ./dhcp/dhcpd.conf:/etc/dhcp/dhcpd.conf
+    command: dhcpd -f -d
+    privileged: true
+    networks:
+      - portail-campus-network
+
+  # Serveur de fichiers (Samba / SMB)
+  samba:
+    image: dperson/samba
+    container_name: samba_campus
+    environment:
+      - USER=campus;campus
+    volumes:
+      - ./partage:/partage
+    command: >
+      -u "campus;campus"
+      -s "PartageCampus;/partage;yes;no;yes;campus"
+    ports:
+      - "139:139"
+      - "445:445"
+    networks:
+      portail-campus-network:
+        ipv4_address: 172.20.0.40
+
+  # Serveur DNS
+  dns:
+    image: internetsystemsconsortium/bind9
+    container_name: dns_campus
+    volumes:
+      - ./dns/named.conf:/etc/bind/named.conf
+      - ./dns/db.portail.campus:/etc/bind/db.portail.campus
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    networks:
+      portail-campus-network:
+        ipv4_address: 172.20.0.10
+
+networks:
+  portail-campus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+volumes:
+  db_data_portail_campus:

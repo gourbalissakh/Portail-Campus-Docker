@@ -1,0 +1,19 @@
+; Durée de vie par défaut des enregistrements (7 jours)
+$TTL 604800
+
+; SOA (Start Of Authority) - Informations sur la zone DNS
+@   IN  SOA portail.campus. admin.portail.campus. (
+        2           ; Serial - Numéro de version de la zone
+        604800      ; Refresh - Intervalle de rafraîchissement (7 jours)
+        86400       ; Retry - Intervalle de nouvelle tentative (1 jour)
+        2419200     ; Expire - Expiration de la zone (4 semaines)
+        604800 )    ; Negative Cache TTL - Cache négatif (7 jours)
+
+; Serveur de noms pour la zone portail.campus
+@       IN  NS  dns.portail.campus.
+
+; Enregistrements A - Association nom d'hôte -> adresse IP
+dns     IN  A   172.20.0.10    ; Serveur DNS
+web     IN  A   172.20.0.20    ; Serveur web (Apache/PHP)
+db      IN  A   172.20.0.30    ; Serveur base de données (MySQL)
+samba   IN  A   172.20.0.40    ; Serveur de fichiers (Samba)
